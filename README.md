@@ -26,6 +26,8 @@ example:
 * NODE_PREFIX: prefix added to node name.
   * Node id is as follows: `NODE_NAME-NODE_PREFIX`. in the example above node id is `NODE-pawel-main`
 
+`.env` file is supported.
+
 ## Building
 
     pyinstaller main.spec
