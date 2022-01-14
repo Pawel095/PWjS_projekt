@@ -1,6 +1,0 @@
-
-  RuntimeError
-
-  Poetry could not find a pyproject.toml file in D:\21_Code\2_PL\S2\PwJS\Proj or its parents
-
-  at ~\.pyenv\pyenv-win\versions\3.10.0\lib\site-packages\poetry\core\factory.py:369 in locate

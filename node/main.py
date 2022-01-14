@@ -4,6 +4,7 @@ import platform
 import sys
 import atexit
 from time import sleep, time
+import GPUtil
 
 import psutil
 import redis
@@ -52,6 +53,16 @@ def start():
             "memory_usage": mem.used,
             "memory_free": mem.available,
             "memory_percent": mem.percent,
+            "gpus": {
+                gpu.id: {
+                    "usage": gpu.load,
+                    "memory_free": gpu.memoryFree,
+                    "memory_used": gpu.memoryUsed,
+                    "memory_percent": gpu.memoryUtil,
+                    "name": gpu.name,
+                }
+                for gpu in GPUtil.getGPUs()
+            },
         }
         r.set(f"{full_prefix}-{time()}", ex=30, value=json.dumps(data).encode("utf-8"))
 
