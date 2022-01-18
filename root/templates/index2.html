@@ -1,0 +1,176 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{url_for('.static', filename='style.css')}}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <title>Monitor zasobów</title>
+</head>
+
+<body onload="loadCharts()">
+    <div class="header">
+        <h1>Monitor zasobów</h1>
+        <p>Dane o twoich komputerach na żywo</p>
+    </div>
+    {% if data.isEmpty %}
+    <h2>Nie ma danych do wyświetlenia</h2>
+    {% endif %}
+    <div class="content">
+        {% for i in range(data|length) %}
+        <div>
+            <h2>{{data[i].node_name}}</h2>
+            <h3>Liczba rdzeni procesora: {{data[i].cpu_cores}}</h3>
+            <h3>Liczba rdzeni logicznych procesora: {{data[i].cpu_logical_cores}}</h3>
+            <h3>Karta graficzna: {{data[i].gpu_name}}</h3>
+            <div class="row">
+                <div class="column">
+                    <div class="padding10">
+                        <canvas id={{ i * 100 + 0 }} width="100" height="80"></canvas>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="padding10">
+                        <canvas id={{ i * 100 + 3 }} width="100" height="80"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="column">
+                    <div class="padding10">
+                        <canvas id={{ i * 100 + 1 }} width="100" height="80"></canvas>
+
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="padding10">
+                        <canvas id={{ i * 100 + 4 }} width="100" height="80"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="column">
+                    <div class="padding10">
+                        <canvas id={{ i * 100 + 2 }} width="100" height="80"></canvas>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="padding10">
+                        <canvas id={{ i * 100 + 5 }} width="100" height="80"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        function loadCharts() {
+            {% for i in range(data | length) %}
+            console.log({{ i }});
+        i = {{ i }}
+        var data = {{ data[i].cpu_usage_avg }};
+        var labels = {{ data[i].time }}.map(function (x) { return new Date(x * 1000).toLocaleTimeString("pl-PL") });
+        loadChart(i * 100 + 0, "Zużycie procesora", 'Średnie zużycie procesora (%)', data, labels);
+        var data = {{ data[i].cpu_temperature }};
+        loadChart(i * 100 + 1, "Temperatura procesora", 'Średnia temperatura procesora', data, labels);
+        var data = {{ data[i].cpu_usage_per }};
+        loadChartWithManyLines(i * 100 + 3, "Zużycie rdzeni procesora", 'Rdzeń ', data, labels);
+        var data = {{ data[i].memory_percent }};
+        loadChart(i * 100 + 4, "Zużycie pamięci", 'Średnie zużycie pamięci (%)', data, labels);
+        var data = {{ data[i].gpu_usage }};
+        loadChart(i * 100 + 2, "Zużycie GPU", 'Średnie zużycie GPU (%)', data, labels);
+        var data = {{ data[i].gpu_memory_percent }};
+        loadChart(i * 100 + 5, "Zużycie pamięci GPU", 'Średnie zużycie pamięci GPU (%)', data, labels);
+        {% endfor %}
+        }
+        function loadChart(id, name, label, data, labels) {
+            new Chart(document.getElementById(id), {
+                type: 'line',
+
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        label: label,
+                        borderColor: "#3e95cd",
+                        fill: false
+                    }
+                    ]
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: name
+                    },
+                    hover: {
+                        mode: 'index',
+                        intersect: true
+                    },
+                    scales: {
+                        yAxes: [{
+                            display: true,
+                            ticks: {
+                                beginAtZero: true,
+                                steps: 10,
+                                stepValue: 5,
+                                max: 100
+                            }
+                        }],
+                        x: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                }
+            });
+        }
+
+        function loadChartWithManyLines(id, name, label, data, labels) {
+            dataset = []
+            colors = ["#3e95cd", "#b0438b", "#5fa31f", "#4fcae9", "#d7ea08", "#a478fb", "#f93643", "#f78151", "#4aa0a3", "#704b07", "#21b382", "#45bb09"]
+            console.log(data);
+            for (var i = 0; i < data.length; i++) {
+                dataset[i] = {
+                    data: data[i],
+                    label: label + (i + 1),
+                    borderColor: colors[i],
+                    fill: false
+                }
+            }
+            new Chart(document.getElementById(id), {
+                type: 'line',
+
+                data: {
+                    labels: labels,
+                    datasets: dataset
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: name
+                    },
+                    hover: {
+                        mode: 'index',
+                        intersect: true
+                    },
+                    scales: {
+                        yAxes: [{
+                            display: true,
+                            ticks: {
+                                beginAtZero: true,
+                                steps: 10,
+                                stepValue: 5,
+                                max: 100
+                            }
+                        }],
+                        x: {
+                            beginAtZero: true
+                        }
+                    },
+                    responsive: true,
+                }
+            });
+        }
+
+    </script>
+</body>
+
+</html>

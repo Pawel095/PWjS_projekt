@@ -1,0 +1,60 @@
+{% extends "bootstrap/base.html" %}
+{% block title %}Monitor zasobów{% endblock %}
+{% block styles %}
+{{super()}}
+<link rel="stylesheet" href="{{url_for('.static', filename='style.css')}}">
+{% endblock %}
+{% block navbar %}
+<div class="navbar navbar-fixed-top">
+    <!-- ... -->
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>Hello, Bootstrap</h1>
+<!-- <div class="row">
+    <div class="column">
+        {% for i in data %}
+        {% for j in i.cpu_usage_avg %}
+        <h4>{{ j }}</h4>
+        <hr>
+        {% endfor %}
+        {% endfor %}
+    </div>
+    <div class="column"></div>
+</div> -->
+<canvas id="myChart" width="400" height="400"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<script>
+    var chartData = {{ data[0].cpu_usage_avg }};
+    console.log(chartData);
+    new Chart(document.getElementById("myChart"), {
+        type: 'line',
+        data: {
+            datasets: [{
+                data: chartData,
+                label: 'Średnie zużycie procesora (%)',
+                borderColor: "#3e95cd",
+                fill: false
+            }
+            ]
+        },
+        options: {
+            title: {
+                display: true,
+                text: 'CPU usages'
+            },
+            hover: {
+                mode: 'index',
+                intersect: true
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
