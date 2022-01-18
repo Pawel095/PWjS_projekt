@@ -7,20 +7,46 @@
 </head>
 
 <body onload="loadCharts()">
-    <div class="header">
-        <h1>Monitor zasobów</h1>
-        <p>Dane o twoich komputerach na żywo</p>
-    </div>
-    {% if data.isEmpty %}
-    <h2>Nie ma danych do wyświetlenia</h2>
-    {% endif %}
-    <div class="content">
+
+    <div class="full-content">
+        <div class="header">
+            <h1>Monitor zasobów</h1>
+            <p>Dane o twoich komputerach na żywo</p>
+        </div>
+        {% if data.isEmpty %}
+        <h2>Nie ma danych do wyświetlenia</h2>
+        {% endif %}
         {% for i in range(data|length) %}
-        <div>
+        <button type="button" class="collapsible">Zoabcz dane o: {{data[i].node_name}}</button>
+        <div class="content">
             <h2>{{data[i].node_name}}</h2>
-            <h3>Liczba rdzeni procesora: {{data[i].cpu_cores}}</h3>
-            <h3>Liczba rdzeni logicznych procesora: {{data[i].cpu_logical_cores}}</h3>
-            <h3>Karta graficzna: {{data[i].gpu_name}}</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dane o komputerze</th>
+                        <th>Wartość</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Liczba rdzeni procesora</td>
+                        <td>{{data[i].cpu_cores}}</td>
+                    </tr>
+                    <tr>
+                        <td>Liczba rdzeni logicznych procesora</td>
+                        <td>{{data[i].cpu_logical_cores}}</td>
+                    </tr>
+                    <tr>
+                        <td>Karta graficzna</td>
+                        <td>{{data[i].gpu_name}}</td>
+                    </tr>
+                    <tr>
+                        <td>System operacyjny komputera</td>
+                        <td>TODO</td>
+                    </tr>
+                </tbody>
+            </table>
             <div class="row">
                 <div class="column">
                     <div class="padding10">
@@ -61,6 +87,24 @@
         </div>
         {% endfor %}
     </div>
+    <script>
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function () {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.display === "block") {
+                    content.style.display = "none";
+                } else {
+                    content.style.display = "block";
+                }
+            });
+        }
+        coll[0].click();
+        
+    </script>
     <script>
         function loadCharts() {
             {% for i in range(data | length) %}

@@ -54,6 +54,7 @@ def get_data_for_node(name):
 @app.route("/")
 def hello_world():
     nodes_data = [get_data_for_node(name) for name in nodes]
+    nodes_data.append(nodes_data[0])
     return render_template("index2.html", data=nodes_data)
 
 
