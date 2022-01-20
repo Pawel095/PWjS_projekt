@@ -1,11 +1,10 @@
-from asyncio.proactor_events import constants
+import atexit
 import json
 import platform
 import sys
-import atexit
 from time import sleep, time
-import GPUtil
 
+import GPUtil
 import psutil
 import redis
 from decouple import config
@@ -15,6 +14,8 @@ from util import UAC_elevate, get_temp, is_admin
 node_prefix = config("NODE_PREFIX", default="NODE")
 node_name = config("NODE_NAME")
 full_prefix = f"{node_prefix}-{node_name}"
+
+unregister_on_exit = False
 
 r = redis.Redis(
     config("ROOT_SERVER_IP"),
@@ -35,6 +36,7 @@ def register(pipe):
     current.append(full_prefix)
     pipe.multi()
     pipe.set("nodes", json.dumps(current).encode("utf-8"))
+    unregister_on_exit = True
 
 
 def start():
@@ -45,6 +47,7 @@ def start():
         sleep(1)
         mem = psutil.virtual_memory()
         data = {
+            "system": platform.system(),
             "cpu_cores": psutil.cpu_count(logical=False),
             "cpu_logical_cores": psutil.cpu_count(),
             "cpu_usage_per": psutil.cpu_percent(percpu=True),
@@ -68,12 +71,13 @@ def start():
 
 
 def unregister(pipe):
-    print(f"Deregistering {full_prefix}")
-    nodes = pipe.get("nodes")
-    if nodes is None:
-        return
-    else:
-        current = json.loads(nodes.decode("utf-8"))
+    if unregister_on_exit:
+        print(f"Deregistering {full_prefix}")
+        nodes = pipe.get("nodes")
+        if nodes is None:
+            return
+        else:
+            current = json.loads(nodes.decode("utf-8"))
 
     current = [n for n in current if n != full_prefix]
     pipe.multi()
