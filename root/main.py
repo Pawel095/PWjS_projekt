@@ -66,18 +66,11 @@ def get_data_for_node(name):
 @app.route("/")
 def hello_world():
     nodes_data = [get_data_for_node(name) for name in nodes]
-    nodes_data.append(nodes_data[0])
     return render_template("index2.html", data=nodes_data)
 
-@app.route('/data')
-def get_data():
-    nodes_data = [get_data_for_node(name) for name in nodes]
-    return render_template("index3.html", data2=nodes_data)
-
 @app.route('/get_data')
-def get_data2():
+def get_data():
     nodes_data = [get_data_for_node(name).toJSON() for name in nodes]
-    nodes_data.append(nodes_data[0])
     return json.dumps(nodes_data)
 
 
