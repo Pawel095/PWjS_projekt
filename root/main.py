@@ -28,14 +28,25 @@ def get_data_for_node(name):
         data = r.get(key).decode("utf-8")
         data = json.loads(data)
         last_data = data
+
+        try:
+            gpu_name = data['gpus']['0']['name']
+            gpu_usage = data["gpus"]["0"]["usage"]
+            gpu_memory_p = data["gpus"]["0"]["memory_percent"]
+        except Exception:
+            gpu_name = '-'
+            gpu_usage = 0
+            gpu_memory_p = 0
+
+        # gpu_name = '-'
         dp = DataPoint(
             key.decode("utf-8").replace(name + "-", ""),
             data["cpu_usage_avg"],
             data["cpu_temperature"][0].replace(",", "."),
             data["cpu_usage_per"],
             data["memory_percent"],
-            data["gpus"]["0"]["usage"],
-            data["gpus"]["0"]["memory_percent"],
+            gpu_usage,
+            gpu_memory_p,
         )
         data_points.append(dp)
     if last_data == '':
@@ -44,8 +55,9 @@ def get_data_for_node(name):
         name,
         last_data["cpu_cores"],
         last_data["cpu_logical_cores"],
-        last_data["gpus"]["0"]["name"],
+        gpu_name,
         data_points,
+        data["system"],
     )
     n.generate_data_for_charts()
     return n
@@ -56,6 +68,17 @@ def hello_world():
     nodes_data = [get_data_for_node(name) for name in nodes]
     nodes_data.append(nodes_data[0])
     return render_template("index2.html", data=nodes_data)
+
+@app.route('/data')
+def get_data():
+    nodes_data = [get_data_for_node(name) for name in nodes]
+    return render_template("index3.html", data2=nodes_data)
+
+@app.route('/get_data')
+def get_data2():
+    nodes_data = [get_data_for_node(name).toJSON() for name in nodes]
+    nodes_data.append(nodes_data[0])
+    return json.dumps(nodes_data)
 
 
 if __name__ == "__main__":

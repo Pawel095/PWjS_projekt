@@ -6,7 +6,7 @@
     <title>Monitor zasobów</title>
 </head>
 
-<body onload="loadCharts()">
+<body>
 
     <div class="full-content">
         <div class="header">
@@ -20,7 +20,7 @@
         <button type="button" class="collapsible">Zoabcz dane o: {{data[i].node_name}}</button>
         <div class="content">
             <h2>{{data[i].node_name}}</h2>
-            
+
             <table>
                 <thead>
                     <tr>
@@ -43,7 +43,7 @@
                     </tr>
                     <tr>
                         <td>System operacyjny komputera</td>
-                        <td>TODO</td>
+                        <td>{{data[i].system}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -103,30 +103,76 @@
             });
         }
         coll[0].click();
-        
+
     </script>
     <script>
-        function loadCharts() {
-            {% for i in range(data | length) %}
-            console.log({{ i }});
-        i = {{ i }}
-        var data = {{ data[i].cpu_usage_avg }};
-        var labels = {{ data[i].time }}.map(function (x) { return new Date(x * 1000).toLocaleTimeString("pl-PL") });
-        loadChart(i * 100 + 0, "Zużycie procesora", 'Średnie zużycie procesora (%)', data, labels);
-        var data = {{ data[i].cpu_temperature }};
-        loadChart(i * 100 + 1, "Temperatura procesora", 'Średnia temperatura procesora', data, labels);
-        var data = {{ data[i].cpu_usage_per }};
-        loadChartWithManyLines(i * 100 + 3, "Zużycie rdzeni procesora", 'Rdzeń ', data, labels);
-        var data = {{ data[i].memory_percent }};
-        loadChart(i * 100 + 4, "Zużycie pamięci", 'Średnie zużycie pamięci (%)', data, labels);
-        var data = {{ data[i].gpu_usage }};
-        loadChart(i * 100 + 2, "Zużycie GPU", 'Średnie zużycie GPU (%)', data, labels);
-        var data = {{ data[i].gpu_memory_percent }};
-        loadChart(i * 100 + 5, "Zużycie pamięci GPU", 'Średnie zużycie pamięci GPU (%)', data, labels);
-        {% endfor %}
+        window.charts = [];
+        fetch('/get_data')
+            .then(response => response.json())
+            .then(data => loadCharts(data.map((e) => JSON.parse(e))));
+        setInterval(function () {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => reloadCharts(data.map((e) => JSON.parse(e))));
+        }, 5000);
+
+        function reloadCharts(d) {
+            var lastChart = 0;
+            for (var i = 0; i < d.length; i++) {
+                da = d[i];
+                var data = da.cpu_usage_avg;
+                var labels = da.time.map(function (x) { return new Date(x * 1000).toLocaleTimeString("pl-PL") });
+                updateChart(lastChart++, data, labels);
+                var data = da.cpu_temperature;
+                updateChart(lastChart++, data, labels);
+                var data = da.cpu_usage_per;
+                updateChartWithMultipleDatasets(lastChart++, data,labels);
+                var data = da.memory_percent;
+                updateChart(lastChart++, data, labels);
+                if (da.gpu_name != '-') {
+                    var data = da.gpu_usage;
+                    updateChart(lastChart++, data, labels);
+                    var data = da.gpu_memory_percent;
+                    updateChart(lastChart++, data, labels);
+                }
+            }
+        }
+        function updateChart(index, data, labels) {
+            window.charts[index].data.datasets[0].data = data;
+            window.charts[index].data.labels = labels;
+            window.charts[index].update();
+        }
+
+        function updateChartWithMultipleDatasets(index, data, labels){
+            for(var i=0;i<window.charts[index].data.datasets.length; i++){
+                window.charts[index].data.datasets[i].data = data[i];
+                window.charts[index].data.labels = labels;
+                window.charts[index].update();
+            }
+        }
+        function loadCharts(d) {
+            for (var i = 0; i < d.length; i++) {
+                da = d[i];
+                var data = da.cpu_usage_avg;
+                var labels = da.time.map(function (x) { return new Date(x * 1000).toLocaleTimeString("pl-PL") });
+                loadChart(i * 100 + 0, "Zużycie procesora", 'Średnie zużycie procesora (%)', data, labels);
+                var data = da.cpu_temperature;
+                loadChart(i * 100 + 1, "Temperatura procesora", 'Średnia temperatura procesora', data, labels);
+                var data = da.cpu_usage_per;
+                loadChartWithManyLines(i * 100 + 3, "Zużycie rdzeni procesora", 'Rdzeń ', data, labels);
+                var data = da.memory_percent;
+                loadChart(i * 100 + 4, "Zużycie pamięci", 'Średnie zużycie pamięci (%)', data, labels);
+                if (da.gpu_name != '-') {
+                    var data = da.gpu_usage;
+                    loadChart(i * 100 + 2, "Zużycie GPU", 'Średnie zużycie GPU (%)', data, labels);
+                    var data = da.gpu_memory_percent;
+                    loadChart(i * 100 + 5, "Zużycie pamięci GPU", 'Średnie zużycie pamięci GPU (%)', data, labels);
+                }
+            }
         }
         function loadChart(id, name, label, data, labels) {
-            new Chart(document.getElementById(id), {
+            // document.getElementById(id).clear();
+            window.charts.push(new Chart(document.getElementById(id), {
                 type: 'line',
 
                 data: {
@@ -164,7 +210,7 @@
                     },
                     responsive: true,
                 }
-            });
+            }));
         }
 
         function loadChartWithManyLines(id, name, label, data, labels) {
@@ -179,7 +225,8 @@
                     fill: false
                 }
             }
-            new Chart(document.getElementById(id), {
+            // document.getElementById(id).clear();
+            window.charts.push(new Chart(document.getElementById(id), {
                 type: 'line',
 
                 data: {
@@ -211,7 +258,7 @@
                     },
                     responsive: true,
                 }
-            });
+            }));
         }
 
     </script>

@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 
 class Node:
     def __init__(
@@ -8,15 +9,21 @@ class Node:
         cpu_logical_cores,
         gpu_name,
         data_points,
+        system
     ) -> None:
         self.node_name = node_name
         self.cpu_cores = cpu_cores
         self.cpu_logical_cores = cpu_logical_cores
         self.gpu_name = gpu_name
         self.data_points = data_points
+        self.system = system
 
     def __str__(self) -> str:
         return f"{self.node_name} - {self.cpu_cores}"
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, 
+            sort_keys=True, indent=4)
 
     def generate_data_for_charts(self):
         self.time = []
