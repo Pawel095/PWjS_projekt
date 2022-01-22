@@ -36,12 +36,13 @@ def register(pipe):
     current.append(full_prefix)
     pipe.multi()
     pipe.set("nodes", json.dumps(current).encode("utf-8"))
-    unregister_on_exit = True
 
 
 def start():
+    global unregister_on_exit
     print(f"Started. ID is {full_prefix}")
     r.transaction(register, "nodes")
+    unregister_on_exit = True
 
     while True:
         sleep(1)
@@ -71,21 +72,23 @@ def start():
 
 
 def unregister(pipe):
-    if unregister_on_exit:
-        print(f"Deregistering {full_prefix}")
-        nodes = pipe.get("nodes")
-        if nodes is None:
-            return
-        else:
-            current = json.loads(nodes.decode("utf-8"))
+    print(f"Deregistering {full_prefix}")
+    nodes = pipe.get("nodes")
+    if nodes is None:
+        return
+    else:
+        current = json.loads(nodes.decode("utf-8"))
 
     current = [n for n in current if n != full_prefix]
     pipe.multi()
     pipe.set("nodes", json.dumps(current).encode("utf-8"))
 
+def on_exit():
+    if unregister_on_exit:
+        r.transaction(unregister, "nodes")
 
 if __name__ == "__main__":
-    atexit.register(r.transaction, unregister, "nodes")
+    atexit.register(on_exit)
 
     if "-a" in sys.argv and platform.system() == "Windows":
         sys.argv = [a for a in sys.argv if a != "-a"]

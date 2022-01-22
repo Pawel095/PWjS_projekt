@@ -27,7 +27,7 @@ def UAC_elevate() -> None:
 def get_temp():
     system = platform.system()
     if system == "Linux":
-        return [a.current for a in psutil.sensors_temperatures()["cpu_thermal"]]
+        return [str(a.current) for a in psutil.sensors_temperatures()["cpu_thermal"]]
     elif system == "Windows":
         if is_admin():
             return (
@@ -39,6 +39,6 @@ def get_temp():
                 .split("\r\n")[:-1]
             )
         else:
-            return [0]
+            return ["0"]
     else:
-        return [0]
+        return ["0"]
