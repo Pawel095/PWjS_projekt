@@ -1,10 +1,13 @@
 import json
 from flask import Flask, render_template
-from flask_bootstrap import Bootstrap
 import redis
+from flask_bootstrap import Bootstrap
 from decouple import config
 
 from node import Node, DataPoint
+
+
+reload_time = 5000
 
 app = Flask(__name__)
 Bootstrap(app)
@@ -23,18 +26,18 @@ def get_data_for_node(name):
     data_keys.sort()
 
     data_points = []
-    last_data = ''
+    last_data = ""
     for key in data_keys:
         data = r.get(key).decode("utf-8")
         data = json.loads(data)
         last_data = data
 
         try:
-            gpu_name = data['gpus']['0']['name']
+            gpu_name = data["gpus"]["0"]["name"]
             gpu_usage = data["gpus"]["0"]["usage"]
             gpu_memory_p = data["gpus"]["0"]["memory_percent"]
         except Exception:
-            gpu_name = '-'
+            gpu_name = "-"
             gpu_usage = 0
             gpu_memory_p = 0
 
@@ -49,7 +52,7 @@ def get_data_for_node(name):
             gpu_memory_p,
         )
         data_points.append(dp)
-    if last_data == '':
+    if last_data == "":
         return
     n = Node(
         name,
@@ -66,9 +69,10 @@ def get_data_for_node(name):
 @app.route("/")
 def hello_world():
     nodes_data = [get_data_for_node(name) for name in nodes]
-    return render_template("index2.html", data=nodes_data)
+    return render_template("index2.html", data=nodes_data, reload_time=reload_time)
 
-@app.route('/get_data')
+
+@app.route("/get_data")
 def get_data():
     nodes_data = [get_data_for_node(name).toJSON() for name in nodes]
     return json.dumps(nodes_data)
