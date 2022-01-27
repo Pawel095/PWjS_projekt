@@ -45,7 +45,7 @@ def start():
     unregister_on_exit = True
 
     while True:
-        sleep(1)
+        sleep(0.9)
         mem = psutil.virtual_memory()
         data = {
             "system": platform.system(),
@@ -59,7 +59,7 @@ def start():
             "memory_percent": mem.percent,
             "gpus": {
                 gpu.id: {
-                    "usage": gpu.load,
+                    "usage": gpu.load * 100,
                     "memory_free": gpu.memoryFree,
                     "memory_used": gpu.memoryUsed,
                     "memory_percent": gpu.memoryUtil,
