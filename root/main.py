@@ -16,10 +16,7 @@ r = redis.Redis(
     config("REDIS_SERVER_PORT", cast=int),
     db=config("REDIS_SERVER_DB", cast=int),
 )
-nodes = r.get("nodes").decode("utf-8")
-nodes = json.loads(nodes)
-print(nodes)
-
+nodes = []
 
 def get_data_for_node(name):
     data_keys = r.keys(f"{name}-*")
@@ -68,6 +65,9 @@ def get_data_for_node(name):
 
 @app.route("/")
 def hello_world():
+    global nodes
+    nodes = r.get("nodes").decode("utf-8")
+    nodes = json.loads(nodes)
     nodes_data = [get_data_for_node(name) for name in nodes]
     return render_template("index2.html", data=nodes_data, reload_time=reload_time)
 

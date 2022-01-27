@@ -8,7 +8,7 @@ or
 
     poetry install
 
-## Config
+## Environment variable config
 
 example:
 
@@ -33,6 +33,10 @@ example:
     pyinstaller main.spec
 
 The executable will be built in `dist` folder.
+
+## Launch
+
+    python ./main.py
 
 ## Special considerations
 
